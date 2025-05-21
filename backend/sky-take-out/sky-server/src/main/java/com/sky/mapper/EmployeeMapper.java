@@ -1,5 +1,7 @@
 package com.sky.mapper;
 
+import com.github.pagehelper.Page;
+import com.sky.dto.EmployeePageQueryDTO;
 import com.sky.entity.Employee;
 
 import org.apache.ibatis.annotations.Insert;
@@ -26,4 +28,6 @@ public interface EmployeeMapper {
     "(#{name},#{username},#{password},#{phone},#{sex},#{idNumber},#{createTime},#{updateTime},#{createUser},#{updateUser},#{status})")
     //注意：#{createTime}和#{updateTime}是java.util.Date类型，MyBatis会自动转换为数据库的DATETIME类型
     void insert(Employee employee);
+
+    Page<Employee> pageQuery(EmployeePageQueryDTO employeePageQueryDTO);
 }

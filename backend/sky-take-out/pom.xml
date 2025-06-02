@@ -30,6 +30,7 @@
         <jjwt>0.9.1</jjwt>
         <jaxb-api>2.3.1</jaxb-api>
         <poi>3.16</poi>
+        <aws.sdk.version>2.20.150</aws.sdk.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -98,6 +99,13 @@
                 <artifactId>aliyun-sdk-oss</artifactId>
                 <version>${aliyun.sdk.oss}</version>
             </dependency>
+            
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>s3</artifactId>
+            </dependency>
+
+
 
             <dependency>
                 <groupId>javax.xml.bind</groupId>

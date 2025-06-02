@@ -6,3 +6,8 @@ sky:
     database: sky_take_out
     username: root
     password: whsb1234
+  aws:
+    access-key: YOUR_ACCESS_KEY_ID
+    secret-key: YOUR_SECRET_ACCESS_KEY
+    region: ap-southeast-2
+    bucket-name: sky-take-out1493

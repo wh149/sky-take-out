@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.sky.constant.MessageConstant;
 import com.sky.result.Result;
 import com.sky.utils.AwsS3Util;
 
@@ -43,6 +44,6 @@ public class CommonController {
         } catch (IOException e) {
             log.error("文件上传失败:{}", e);
         }
-        return null;
+        return Result.error(MessageConstant.UPLOAD_FAILED);
     }
 }

@@ -8,13 +8,8 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
-import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
-import java.time.Duration;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
@@ -29,11 +24,11 @@ public class AwsS3Util {
     private String bucketName;
 
     /**
-     * 文件上传
+     * 上传文件到 AWS S3 并设为公开可访问
      *
      * @param bytes      文件字节数组
-     * @param objectName S3中对象的路径，如 uploads/image.jpg
-     * @return S3文件的访问URL
+     * @param objectName S3中的对象键，如 uploads/image.jpg
+     * @return 可公开访问的文件 URL
      */
     public String upload(byte[] bytes, String objectName) {
         // 创建 S3 客户端
@@ -47,54 +42,29 @@ public class AwsS3Util {
                 .build();
 
         try {
+            // 构建上传请求，并设为 public-read
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                     .bucket(bucketName)
                     .key(objectName)
+                    // .acl("public-read")  // 关键：设置对象为公开可读
                     .build();
 
+            // 执行上传
             s3Client.putObject(putObjectRequest, RequestBody.fromBytes(bytes));
 
-            // 返回公共 URL（前提是 bucket 是公开的或设置了正确的权限）
+            // 构建公开访问 URL
             String encodedObjectName = URLEncoder.encode(objectName, StandardCharsets.UTF_8.toString()).replaceAll("\\+", "%20");
-            String fileUrl =generatePresignedUrl(encodedObjectName, 60);
-            
-            log.info("文件上传到: {}", fileUrl);
+            String fileUrl = String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, region, encodedObjectName);
+
+            log.info("文件上传成功，访问地址: {}", fileUrl);
             return fileUrl;
 
         } catch (Exception e) {
-            log.error("上传文件到S3失败: {}", e.getMessage(), e);
+            log.error("上传文件到 S3 失败: {}", e.getMessage(), e);
             return null;
+
         } finally {
             s3Client.close();
         }
-    }
-
-    public String generatePresignedUrl(String objectName, int expiresMinutes) {
-        S3Presigner presigner = S3Presigner.builder()
-                .region(Region.of(region))
-                .credentialsProvider(
-                        StaticCredentialsProvider.create(
-                                AwsBasicCredentials.create(accessKeyId, secretAccessKey)
-                        )
-                )
-                .build();
-
-        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-                .bucket(bucketName)
-                .key(objectName)
-                .build();
-
-        GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
-                .getObjectRequest(getObjectRequest)
-                .signatureDuration(Duration.ofMinutes(expiresMinutes))
-                .build();
-
-        PresignedGetObjectRequest presignedRequest = presigner.presignGetObject(presignRequest);
-
-        String url = presignedRequest.url().toString();
-        log.info("预签名访问链接生成成功: {}", url);
-
-        presigner.close();
-        return url;
     }
 }
